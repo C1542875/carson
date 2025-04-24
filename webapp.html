@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cobra Dot Game</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    canvas {
+      border: 2px solid black;
+      background-color: #eee;
+    }
+    #score, #timer {
+      font-size: 24px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cobra Dot Game</h1>
+  <div id="score">Score: 0</div>
+  <div id="timer">Time Left: 5:00</div>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let cobra = { x: 300, y: 200, size: 20, speed: 5 };
+    let dot = generateDot();
+    let score = 0;
+    let keys = {};
+    let gameTime = 60; // 1 minute in seconds
+    let interval, gameInterval;
+
+    function generateDot() {
+      return {
+        x: Math.floor(Math.random() * (canvas.width - 20)),
+        y: Math.floor(Math.random() * (canvas.height - 20)),
+        size: 10
+      };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw cobra
+      ctx.fillStyle = 'green';
+      ctx.fillRect(cobra.x, cobra.y, cobra.size, cobra.size);
+
+      // Draw dot
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function update() {
+      if (keys['ArrowUp']) cobra.y -= cobra.speed;
+      if (keys['ArrowDown']) cobra.y += cobra.speed;
+      if (keys['ArrowLeft']) cobra.x -= cobra.speed;
+      if (keys['ArrowRight']) cobra.x += cobra.speed;
+
+      // Collision detection
+      if (Math.abs(cobra.x - dot.x) < 20 && Math.abs(cobra.y - dot.y) < 20) {
+        score++;
+        document.getElementById('score').textContent = 'Score: ' + score;
+        dot = generateDot();
+      }
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+    }
+
+    function startGame() {
+      score = 0;
+      gameTime = 300;
+      document.getElementById('score').textContent = 'Score: 0';
+      interval = setInterval(updateTimer, 1000);
+      gameInterval = setInterval(gameLoop, 1000 / 30);
+    }
+
+    function updateTimer() {
+      gameTime--;
+      let minutes = Math.floor(gameTime / 60);
+      let seconds = gameTime % 60;
+      if (seconds < 10) seconds = '0' + seconds;
+      document.getElementById('timer').textContent = `Time Left: ${minutes}:${seconds}`;
+      if (gameTime <= 0) {
+        clearInterval(interval);
+        clearInterval(gameInterval);
+        alert(`Time's up! Your score: ${score}\nClick OK to play again.`);
+        startGame();
+      }
+    }
+
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    startGame();
+  </script>
+</body>
+</html>
